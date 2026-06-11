@@ -1,9 +1,17 @@
 # SecRepoGuard
 
+[![Python 3.10+](https://img.shields.io/badge/Python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.1.0-informational.svg)](https://github.com/MatheusMMayer/SecRepoGuard)
+
 Ferramenta CLI educacional para auditoria basica de seguranca em repositorios
 publicos do GitHub ou projetos locais. O SecRepoGuard procura potenciais
 segredos expostos e compara dependencias declaradas com uma pequena base local
-de versoes antigas ou de risco.
+de versoes antigas ou de risco. Opcionalmente, consulta vulnerabilidades atuais
+no [OSV.dev](https://osv.dev/).
+
+Repositorio oficial:
+[github.com/MatheusMMayer/SecRepoGuard](https://github.com/MatheusMMayer/SecRepoGuard)
 
 > Os resultados sao heurísticos e exigem validacao humana. A ferramenta nao
 > substitui secret scanners, SAST, SCA ou uma auditoria profissional.
@@ -62,8 +70,8 @@ A execucao da ferramenta usa apenas a biblioteca padrao do Python.
 ## Instalacao
 
 ```bash
-git clone https://github.com/SEU_USUARIO/secrepoguard.git
-cd secrepoguard
+git clone https://github.com/MatheusMMayer/SecRepoGuard.git
+cd SecRepoGuard
 python -m venv .venv
 ```
 
@@ -82,6 +90,26 @@ Instale apenas a dependencia de teste:
 ```bash
 python -m pip install -r requirements.txt
 ```
+
+Nenhuma dependencia externa e necessaria para executar a ferramenta.
+
+## Inicio rapido
+
+Analise offline do projeto vulneravel de demonstracao:
+
+```bash
+python secrepoguard.py --path examples/vulnerable_project --all
+```
+
+Analise completa de um repositorio publico, incluindo historico e OSV:
+
+```bash
+python secrepoguard.py --repo https://github.com/usuario/projeto \
+  --all --scan-history --scan-vulnerabilities
+```
+
+O segundo comando requer Git e internet. Use apenas em repositorios que voce
+possui ou tem autorizacao para auditar.
 
 ## Como executar com repositorio GitHub
 
@@ -174,6 +202,21 @@ bases diferentes sao agrupados quando compartilham identificadores.
 
 O argumento `--all` sozinho permanece offline. Combine-o explicitamente com
 `--scan-vulnerabilities` para habilitar a consulta.
+
+## Modos de analise
+
+| Argumento | Comportamento |
+| --- | --- |
+| `--scan-secrets` | Analisa somente potenciais segredos na arvore atual. |
+| `--scan-dependencies` | Analisa somente dependencias pela base local. |
+| `--all` | Executa segredos e dependencias na arvore atual. |
+| `--scan-history` | Adiciona a busca de segredos no historico Git. |
+| `--scan-vulnerabilities` | Adiciona a consulta de versoes exatas ao OSV.dev. |
+| `--history-limit N` | Limita commits; `0` significa todos os acessiveis. |
+| `--keep` | Preserva o clone temporario feito por `--repo`. |
+
+`--scan-history` e `--scan-vulnerabilities` podem ser combinados com `--all`.
+Sem um modo de analise informado, o comportamento equivale a `--all`.
 
 ## Como executar com pasta local
 
@@ -268,6 +311,7 @@ python -m pytest -q
 
 A suite verifica segredos, historico Git, dependencias, cliente OSV simulado,
 deduplicacao de advisories, relatorios e exclusao de diretorios ignorados.
+O resultado atual esperado e `19 passed`.
 
 ## Preocupacoes com seguranca
 
@@ -276,7 +320,7 @@ deduplicacao de advisories, relatorios e exclusao de diretorios ignorados.
 - nenhuma consulta externa ocorre sem `--scan-vulnerabilities`;
 - no modo OSV, apenas metadados de dependencias sao enviados;
 - o comando Git usa argumentos separados e nao passa pela shell;
-- o clone usa historico raso e timeout;
+- o clone usa historico raso por padrao e possui timeout;
 - a clonagem completa so ocorre quando `--scan-history` e solicitado;
 - links simbolicos nao sao seguidos;
 - arquivos grandes, binarios e diretorios conhecidos sao descartados;
@@ -303,7 +347,7 @@ validam os fluxos centrais sem depender da rede.
 
 Os modulos possuem responsabilidades pequenas. A base de riscos esta
 centralizada em `dependencies.py`, permitindo adicionar pacotes e limiares sem
-alterar a CLI ou os relatórios.
+alterar a CLI ou os relatorios. A integracao externa fica isolada em `osv.py`.
 
 ### Reprodutibilidade
 
