@@ -327,43 +327,6 @@ O resultado atual esperado e `19 passed`.
 - achados de segredos sao mascarados antes da exibicao;
 - repositorios temporarios sao removidos por padrao.
 
-Nao use o projeto vulneravel de exemplo em producao. Todos os valores contidos
-nele sao ficticios.
-
-## Criterios de avaliacao de artefatos
-
-### Disponibilidade
-
-O codigo, os exemplos, os testes, a licença e a documentacao ficam no mesmo
-repositorio e podem ser publicados diretamente no GitHub.
-
-### Funcionalidade
-
-A CLI cobre entrada remota ou local, modos independentes, consulta opcional ao
-OSV, protecoes de leitura, terminal, TXT e JSON. Os testes automatizados
-validam os fluxos centrais sem depender da rede.
-
-### Sustentabilidade
-
-Os modulos possuem responsabilidades pequenas. A base de riscos esta
-centralizada em `dependencies.py`, permitindo adicionar pacotes e limiares sem
-alterar a CLI ou os relatorios. A integracao externa fica isolada em `osv.py`.
-
-### Reprodutibilidade
-
-A analise nao depende de APIs ou rede enquanto `--scan-vulnerabilities` nao e
-usado. O exemplo vulneravel e o comando minimo reproduzem os achados locais em
-qualquer ambiente com Python 3.10+.
-
-## Trabalho futuro
-
-- analisar arquivos de lock e dependencias transitivas;
-- ampliar a analise do historico com allowlists e deteccao por entropia;
-- adicionar allowlist configuravel e verificacao de entropia;
-- suportar formatos como `pyproject.toml`, `Pipfile` e outros gerenciadores;
-- gerar SARIF para integracao com plataformas de desenvolvimento;
-- ampliar testes de compatibilidade entre sistemas operacionais.
-
 ## Licenca
 
 Distribuido sob a licença MIT. Consulte [LICENSE](LICENSE).
