@@ -1,0 +1,8 @@
+__pycache__/
+.pytest_cache/
+*.py[cod]
+.venv/
+venv/
+reports/*.json
+reports/*.txt
+!reports/example_report.txt

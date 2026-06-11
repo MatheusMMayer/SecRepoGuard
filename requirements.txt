@@ -1,0 +1,3 @@
+# O SecRepoGuard usa somente a biblioteca padrao em tempo de execucao.
+# Para executar os testes:
+pytest>=8.0,<10.0

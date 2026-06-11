@@ -1,0 +1,13 @@
+{
+  "name": "secrepoguard-vulnerable-example",
+  "private": true,
+  "description": "Dependencias antigas apenas para demonstracao academica.",
+  "dependencies": {
+    "lodash": "4.17.15",
+    "express": "^4.16.0",
+    "axios": "1.7.0"
+  },
+  "devDependencies": {
+    "minimist": "~1.2.0"
+  }
+}

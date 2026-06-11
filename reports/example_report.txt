@@ -1,0 +1,86 @@
+SecRepoGuard - Relatorio de Auditoria
+======================================
+
+Origem analisada: examples\vulnerable_project
+Data/hora: 2026-06-11T10:10:12-03:00
+Arquivos analisados: 5
+Arquivos ignorados: 0
+Segredos potenciais: 5
+Commits analisados: 0
+Commits ignorados por tamanho: 0
+Segredos potenciais no historico: 0
+Dependencias analisadas: 8
+Dependencias de risco: 5
+
+Resumo por severidade:
+HIGH: 7
+MEDIUM: 3
+LOW: 0
+
+AVISO: Os achados sao potenciais e precisam de validacao humana. A base de dependencias e local e nao substitui uma ferramenta SCA.
+
+Segredos potenciais:
+[HIGH] Token de servico privilegiado
+Arquivo: .env.example
+Linha: 2
+Trecho: SUPABASE_SERVICE_ROLE_KEY="fake********"
+Recomendacao: Remova o token do repositorio, rotacione-o e use um cofre de segredos.
+
+[HIGH] URL de banco de dados
+Arquivo: .env.example
+Linha: 3
+Trecho: DATABASE_URL="post********"
+Recomendacao: Remova credenciais da URL, rotacione-as e use configuracao externa.
+
+[MEDIUM] Chave de API
+Arquivo: app.py
+Linha: 4
+Trecho: API_KEY = "fake********"
+Recomendacao: Mova a chave para uma variavel de ambiente e rotacione-a se for real.
+
+[HIGH] Senha hardcoded
+Arquivo: app.py
+Linha: 5
+Trecho: DB_PASSWORD = "fake********"
+Recomendacao: Mova a senha para uma variavel de ambiente e rotacione a credencial.
+
+[HIGH] Possivel chave privada
+Arquivo: private_key.txt
+Linha: 1
+Trecho: -----BEGIN PRIVATE KEY-----
+Recomendacao: Remova a chave do repositorio, rotacione-a e revise o historico.
+
+Segredos potenciais no historico Git:
+Nenhum potencial segredo encontrado no historico analisado.
+Dependencias de risco:
+[HIGH] lodash 4.17.15
+Arquivo: package.json
+Motivo: Versao inferior a 4.17.21, conforme a base local.
+Recomendacao: Atualize para 4.17.21 ou uma versao estavel mais recente.
+
+[MEDIUM] express ^4.16.0
+Arquivo: package.json
+Motivo: Versao inferior a 4.17.0, conforme a base local.
+Recomendacao: Atualize para 4.17.0 ou uma versao estavel mais recente.
+
+[HIGH] minimist ~1.2.0
+Arquivo: package.json
+Motivo: Versao inferior a 1.2.6, conforme a base local.
+Recomendacao: Atualize para 1.2.6 ou uma versao estavel mais recente.
+
+[HIGH] django 2.2.0
+Arquivo: requirements.txt
+Motivo: Versao inferior a 3.2, conforme a base local.
+Recomendacao: Atualize para 3.2 ou uma versao estavel mais recente.
+
+[MEDIUM] requests 2.18.4
+Arquivo: requirements.txt
+Motivo: Versao inferior a 2.20, conforme a base local.
+Recomendacao: Atualize para 2.20 ou uma versao estavel mais recente.
+
+Recomendacoes gerais:
+- Valide cada achado antes de tomar medidas.
+- Rotacione credenciais reais expostas e remova-as tambem do historico Git.
+- Use variaveis de ambiente ou um cofre de segredos.
+- Atualize dependencias com testes e consulte avisos oficiais de seguranca.
+- Execute ferramentas especializadas em pipelines CI/CD para maior cobertura.

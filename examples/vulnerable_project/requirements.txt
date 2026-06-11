@@ -1,0 +1,4 @@
+django==2.2.0
+requests==2.18.4
+flask>=2.0.0
+example-package==1.0.0

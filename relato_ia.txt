@@ -1,0 +1,25 @@
+RELATO DE USO DE INTELIGENCIA ARTIFICIAL
+
+Projeto: SecRepoGuard
+Data: 2026
+
+Este artefato foi desenvolvido com apoio de inteligencia artificial generativa.
+A IA auxiliou na organizacao da arquitetura, implementacao inicial, criacao de
+testes, documentacao e revisao de requisitos.
+
+Decisoes mantidas sob revisao humana:
+- escopo educacional da ferramenta;
+- escolha de uma base local e deterministica de versoes;
+- proibicao de executar codigo ou instalar dependencias do alvo;
+- mascaramento obrigatorio de valores potencialmente sensiveis;
+- uso exclusivo da biblioteca padrao em tempo de execucao;
+- classificacao dos achados como potenciais, com validacao humana obrigatoria.
+
+Limitacoes da assistencia:
+- expressoes regulares podem produzir falsos positivos e falsos negativos;
+- os limiares de versao sao exemplos academicos e envelhecem com o tempo;
+- os testes nao provam ausencia de vulnerabilidades;
+- a ferramenta nao substitui revisao profissional, SAST, SCA ou secret scanning.
+
+Todo codigo gerado deve ser revisado antes da publicacao ou uso em ambientes
+reais. Os segredos presentes no exemplo sao dados ficticios.
