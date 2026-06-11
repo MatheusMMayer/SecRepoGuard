@@ -30,6 +30,9 @@ REQUIREMENT_RE = re.compile(
     r"([0-9]+(?:\.[0-9]+)*(?:[A-Za-z0-9_.-]*)?)"
 )
 VERSION_RE = re.compile(r"(\d+(?:\.\d+)+)")
+EXACT_VERSION_RE = re.compile(
+    r"^[vV]?(\d+(?:\.\d+)+(?:[-+][0-9A-Za-z.-]+)?)$"
+)
 
 
 def version_tuple(version: str) -> tuple[int, ...] | None:
@@ -51,7 +54,12 @@ def is_version_below(found: str, minimum: str) -> bool:
 
 
 def _evaluate(
-    name: str, version: str, ecosystem: str, source: Path, root: Path | None
+    name: str,
+    version: str,
+    ecosystem: str,
+    source: Path,
+    root: Path | None,
+    exact_version: str | None = None,
 ) -> dict:
     normalized_name = name.lower().replace("_", "-")
     rule = RISK_DATABASE[ecosystem].get(normalized_name)
@@ -60,6 +68,8 @@ def _evaluate(
         "category": "dependency",
         "name": name,
         "version": version,
+        "resolved_version": exact_version,
+        "ecosystem": "PyPI" if ecosystem == "python" else "npm",
         "file": relative,
         "severity": "NONE",
         "status": "not_evaluated",
@@ -113,7 +123,16 @@ def parse_requirements(path: Path, root: Path | None = None) -> list[dict]:
         if not match:
             continue
         name, _operator, version = match.groups()
-        dependencies.append(_evaluate(name, version, "python", path, root))
+        dependencies.append(
+            _evaluate(
+                name,
+                version,
+                "python",
+                path,
+                root,
+                exact_version=version if _operator == "==" else None,
+            )
+        )
     return dependencies
 
 
@@ -128,8 +147,17 @@ def parse_package_json(path: Path, root: Path | None = None) -> list[dict]:
         if not isinstance(values, dict):
             continue
         for name, version in values.items():
+            version_text = str(version)
+            exact_match = EXACT_VERSION_RE.fullmatch(version_text.strip())
             dependencies.append(
-                _evaluate(str(name), str(version), "javascript", path, root)
+                _evaluate(
+                    str(name),
+                    version_text,
+                    "javascript",
+                    path,
+                    root,
+                    exact_version=exact_match.group(1) if exact_match else None,
+                )
             )
     return dependencies
 

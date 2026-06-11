@@ -6,7 +6,9 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-SEVERITIES = ("HIGH", "MEDIUM", "LOW")
+from . import __version__
+
+SEVERITIES = ("CRITICAL", "HIGH", "MEDIUM", "LOW")
 
 
 def build_report(scan_result: dict, source: str) -> dict:
@@ -14,12 +16,25 @@ def build_report(scan_result: dict, source: str) -> dict:
         "history",
         {"commits_scanned": 0, "commits_skipped": 0, "findings": []},
     )
+    vulnerabilities = scan_result.get(
+        "vulnerabilities",
+        {
+            "dependencies_queried": 0,
+            "dependencies_skipped": 0,
+            "findings": [],
+        },
+    )
     risky_dependencies = [
         item
         for item in scan_result["dependencies"]
         if item["severity"] in SEVERITIES
     ]
-    all_findings = scan_result["secrets"] + history["findings"] + risky_dependencies
+    all_findings = (
+        scan_result["secrets"]
+        + history["findings"]
+        + risky_dependencies
+        + vulnerabilities["findings"]
+    )
     severity_counts = {
         severity: sum(
             1 for finding in all_findings if finding["severity"] == severity
@@ -28,7 +43,7 @@ def build_report(scan_result: dict, source: str) -> dict:
     }
     return {
         "tool": "SecRepoGuard",
-        "version": "1.0.0",
+        "version": __version__,
         "source": source,
         "scanned_at": datetime.now(timezone.utc).astimezone().isoformat(
             timespec="seconds"
@@ -46,12 +61,21 @@ def build_report(scan_result: dict, source: str) -> dict:
             "commits_skipped": history["commits_skipped"],
             "dependencies_analyzed": len(scan_result["dependencies"]),
             "dependency_risks": len(risky_dependencies),
+            "osv_dependencies_queried": vulnerabilities["dependencies_queried"],
+            "osv_dependencies_skipped": vulnerabilities["dependencies_skipped"],
+            "known_vulnerabilities": len(vulnerabilities["findings"]),
+            "unknown_severity": sum(
+                1
+                for finding in vulnerabilities["findings"]
+                if finding["severity"] == "UNKNOWN"
+            ),
             "severity": severity_counts,
             "ignored_reasons": scan_result["ignored_reasons"],
         },
         "secrets": scan_result["secrets"],
         "history_findings": history["findings"],
         "dependencies": scan_result["dependencies"],
+        "vulnerabilities": vulnerabilities["findings"],
         "recommendations": [
             "Valide cada achado antes de tomar medidas.",
             "Rotacione credenciais reais expostas e remova-as tambem do historico Git.",
@@ -78,11 +102,16 @@ def format_text(report: dict) -> str:
         f"Segredos potenciais no historico: {summary['history_secrets']}",
         f"Dependencias analisadas: {summary['dependencies_analyzed']}",
         f"Dependencias de risco: {summary['dependency_risks']}",
+        f"Dependencias consultadas no OSV: {summary['osv_dependencies_queried']}",
+        f"Dependencias sem versao exata: {summary['osv_dependencies_skipped']}",
+        f"Vulnerabilidades conhecidas: {summary['known_vulnerabilities']}",
         "",
         "Resumo por severidade:",
+        f"CRITICAL: {summary['severity']['CRITICAL']}",
         f"HIGH: {summary['severity']['HIGH']}",
         f"MEDIUM: {summary['severity']['MEDIUM']}",
         f"LOW: {summary['severity']['LOW']}",
+        f"UNKNOWN: {summary['unknown_severity']}",
         "",
         f"AVISO: {report['notice']}",
         "",
@@ -136,6 +165,30 @@ def format_text(report: dict) -> str:
                 "",
             ]
         )
+
+    lines.append("Vulnerabilidades atuais consultadas no OSV.dev:")
+    if not report["vulnerabilities"]:
+        lines.append("Nenhuma vulnerabilidade conhecida retornada pelo OSV.")
+    for finding in report["vulnerabilities"]:
+        aliases = ", ".join(finding["aliases"]) or "nenhum"
+        fixed = ", ".join(finding["fixed_versions"]) or "nao informado"
+        lines.extend(
+            [
+                (
+                    f"[{finding['severity']}] {finding['id']} - "
+                    f"{finding['name']} {finding['version']}"
+                ),
+                f"Ecossistema: {finding['ecosystem']}",
+                f"Arquivo: {finding['file']}",
+                f"Aliases: {aliases}",
+                f"Resumo: {finding['summary']}",
+                f"Versoes corrigidas: {fixed}",
+                f"Recomendacao: {finding['recommendation']}",
+            ]
+        )
+        if finding["references"]:
+            lines.append(f"Referencia: {finding['references'][0]}")
+        lines.append("")
 
     lines.extend(["Recomendacoes gerais:"])
     lines.extend(f"- {item}" for item in report["recommendations"])

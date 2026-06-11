@@ -2,7 +2,7 @@ SecRepoGuard - Relatorio de Auditoria
 ======================================
 
 Origem analisada: examples\vulnerable_project
-Data/hora: 2026-06-11T10:10:12-03:00
+Data/hora: 2026-06-11T12:37:36-03:00
 Arquivos analisados: 5
 Arquivos ignorados: 0
 Segredos potenciais: 5
@@ -11,11 +11,16 @@ Commits ignorados por tamanho: 0
 Segredos potenciais no historico: 0
 Dependencias analisadas: 8
 Dependencias de risco: 5
+Dependencias consultadas no OSV: 0
+Dependencias sem versao exata: 0
+Vulnerabilidades conhecidas: 0
 
 Resumo por severidade:
+CRITICAL: 0
 HIGH: 7
 MEDIUM: 3
 LOW: 0
+UNKNOWN: 0
 
 AVISO: Os achados sao potenciais e precisam de validacao humana. A base de dependencias e local e nao substitui uma ferramenta SCA.
 
@@ -78,6 +83,8 @@ Arquivo: requirements.txt
 Motivo: Versao inferior a 2.20, conforme a base local.
 Recomendacao: Atualize para 2.20 ou uma versao estavel mais recente.
 
+Vulnerabilidades atuais consultadas no OSV.dev:
+Nenhuma vulnerabilidade conhecida retornada pelo OSV.
 Recomendacoes gerais:
 - Valide cada achado antes de tomar medidas.
 - Rotacione credenciais reais expostas e remova-as tambem do historico Git.

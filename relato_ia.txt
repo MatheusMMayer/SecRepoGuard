@@ -13,11 +13,14 @@ Decisoes mantidas sob revisao humana:
 - proibicao de executar codigo ou instalar dependencias do alvo;
 - mascaramento obrigatorio de valores potencialmente sensiveis;
 - uso exclusivo da biblioteca padrao em tempo de execucao;
+- consulta opcional ao OSV.dev, com envio apenas de metadados de dependencias;
 - classificacao dos achados como potenciais, com validacao humana obrigatoria.
 
 Limitacoes da assistencia:
 - expressoes regulares podem produzir falsos positivos e falsos negativos;
 - os limiares de versao sao exemplos academicos e envelhecem com o tempo;
+- advisories externos podem mudar entre execucoes e dependem da disponibilidade
+  do OSV.dev;
 - os testes nao provam ausencia de vulnerabilidades;
 - a ferramenta nao substitui revisao profissional, SAST, SCA ou secret scanning.
 

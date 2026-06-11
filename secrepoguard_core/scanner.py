@@ -22,6 +22,11 @@ def scan_project(
         "ignored_reasons": {},
         "secrets": [],
         "dependencies": [],
+        "vulnerabilities": {
+            "dependencies_queried": 0,
+            "dependencies_skipped": 0,
+            "findings": [],
+        },
         "history": {
             "commits_scanned": 0,
             "commits_skipped": 0,

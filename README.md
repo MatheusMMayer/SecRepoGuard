@@ -30,6 +30,7 @@ analise estatica, atualizacao de componentes e resultados reproduziveis.
 - mascaramento do valor sensivel em todos os relatorios;
 - leitura de `requirements.txt`, `dependencies` e `devDependencies`;
 - base local deterministica para classificacao de versoes;
+- consulta opcional de vulnerabilidades atuais na API OSV.dev;
 - saida no terminal e exportacao em TXT e JSON;
 - modos exclusivos para segredos ou dependencias;
 - busca opcional de segredos em linhas adicionadas aos commits Git;
@@ -38,15 +39,17 @@ analise estatica, atualizacao de componentes e resultados reproduziveis.
 
 ## Escopo e limitacoes
 
-O SecRepoGuard realiza uma triagem estatica e offline. Ele nao consulta CVEs,
-nao resolve arvores transitivas, nao interpreta todos os formatos de versao e
-inspeciona apenas linhas adicionadas nos diffs quando o modo de historico e
-ativado. Expressoes regulares podem gerar falsos positivos e falsos negativos.
-A base local e deliberadamente pequena e seus limiares devem ser revisados.
+O SecRepoGuard realiza uma triagem estatica. Por padrao, a operacao e offline.
+Quando `--scan-vulnerabilities` e informado, consulta o OSV.dev para obter
+advisories atuais. Ele nao resolve arvores transitivas, nao interpreta todos os
+formatos de versao e inspeciona apenas linhas adicionadas nos diffs quando o
+modo de historico e ativado. Expressoes regulares podem gerar falsos positivos
+e falsos negativos.
 
-O scanner nao executa arquivos, nao instala pacotes do projeto, nao envia dados
-e ignora links simbolicos, arquivos provavelmente binarios, arquivos maiores
-que 1 MB e diretorios pesados.
+O scanner nao executa arquivos, nao instala pacotes do projeto e nao envia
+codigo-fonte. Ele ignora links simbolicos, arquivos provavelmente binarios,
+arquivos maiores que 1 MB e diretorios pesados. No modo OSV, apenas nome,
+versao e ecossistema das dependencias sao enviados ao servico.
 
 ## Dependencias
 
@@ -139,6 +142,39 @@ Se uma chave conhecida nao aparecer:
    pull requests nao baixados podem nao existir no clone.
 5. Chaves de provedores ainda sem regra podem exigir um novo padrao.
 
+## Como consultar vulnerabilidades atuais no OSV.dev
+
+Esta verificacao requer internet e precisa ser ativada explicitamente:
+
+```bash
+python secrepoguard.py --path examples/vulnerable_project \
+  --scan-vulnerabilities
+```
+
+Com um repositorio GitHub:
+
+```bash
+python secrepoguard.py --repo https://github.com/usuario/projeto \
+  --all --scan-vulnerabilities \
+  --output reports/osv_report.txt \
+  --json reports/osv_report.json
+```
+
+O SecRepoGuard envia ao endpoint publico do OSV somente o nome, a versao exata
+e o ecossistema (`PyPI` ou `npm`) da dependencia. Codigo-fonte e segredos
+encontrados nao sao enviados.
+
+Restricoes como `>=2.0`, `~=2.0` ou `^4.0.0` nao sao consultadas, pois nao
+identificam com certeza a versao instalada. O relatorio mostra quantas
+dependencias foram consultadas e quantas foram ignoradas por esse motivo.
+
+Para cada vulnerabilidade, o resultado pode conter ID OSV/GHSA, aliases CVE,
+severidade, resumo, versoes corrigidas e referencia. Registros equivalentes de
+bases diferentes sao agrupados quando compartilham identificadores.
+
+O argumento `--all` sozinho permanece offline. Combine-o explicitamente com
+`--scan-vulnerabilities` para habilitar a consulta.
+
 ## Como executar com pasta local
 
 ```bash
@@ -198,6 +234,8 @@ secrepoguard/
 |   |-- scanner.py
 |   |-- secrets.py
 |   |-- dependencies.py
+|   |-- history.py
+|   |-- osv.py
 |   |-- report.py
 |   `-- utils.py
 |-- examples/vulnerable_project/
@@ -228,15 +266,15 @@ Os totais podem mudar quando os exemplos ou as regras forem atualizados.
 python -m pytest -q
 ```
 
-A suite verifica deteccao e mascaramento de segredos, chave privada, leitura de
-arquivos de dependencias, comparacao de versoes, geracao dos dois formatos de
-relatorio e exclusao de diretorios ignorados.
+A suite verifica segredos, historico Git, dependencias, cliente OSV simulado,
+deduplicacao de advisories, relatorios e exclusao de diretorios ignorados.
 
 ## Preocupacoes com seguranca
 
 - nenhum codigo do alvo e importado ou executado;
 - nenhuma dependencia do alvo e instalada;
-- nenhum dado e enviado a servicos externos;
+- nenhuma consulta externa ocorre sem `--scan-vulnerabilities`;
+- no modo OSV, apenas metadados de dependencias sao enviados;
 - o comando Git usa argumentos separados e nao passa pela shell;
 - o clone usa historico raso e timeout;
 - a clonagem completa so ocorre quando `--scan-history` e solicitado;
@@ -257,9 +295,9 @@ repositorio e podem ser publicados diretamente no GitHub.
 
 ### Funcionalidade
 
-A CLI cobre entrada remota ou local, modos de analise independentes, protecoes
-de leitura, relatorio no terminal e exportacao em TXT e JSON. Os testes
-automatizados validam os fluxos centrais.
+A CLI cobre entrada remota ou local, modos independentes, consulta opcional ao
+OSV, protecoes de leitura, terminal, TXT e JSON. Os testes automatizados
+validam os fluxos centrais sem depender da rede.
 
 ### Sustentabilidade
 
@@ -269,13 +307,12 @@ alterar a CLI ou os relatórios.
 
 ### Reprodutibilidade
 
-A analise nao depende de APIs, banco de dados ou rede quando `--path` e usado.
-O exemplo vulneravel e o comando de teste minimo permitem reproduzir os achados
-em qualquer ambiente com Python 3.10+.
+A analise nao depende de APIs ou rede enquanto `--scan-vulnerabilities` nao e
+usado. O exemplo vulneravel e o comando minimo reproduzem os achados locais em
+qualquer ambiente com Python 3.10+.
 
 ## Trabalho futuro
 
-- consumir bases oficiais de vulnerabilidades de forma opcional;
 - analisar arquivos de lock e dependencias transitivas;
 - ampliar a analise do historico com allowlists e deteccao por entropia;
 - adicionar allowlist configuravel e verificacao de entropia;
@@ -294,3 +331,4 @@ Distribuido sob a licença MIT. Consulte [LICENSE](LICENSE).
 - [GitHub: Removendo dados sensiveis de um repositorio](https://docs.github.com/pt/authentication/keeping-your-account-and-data-secure/removing-sensitive-data-from-a-repository)
 - [Python argparse](https://docs.python.org/3/library/argparse.html)
 - [Python subprocess](https://docs.python.org/3/library/subprocess.html)
+- [OSV.dev API](https://google.github.io/osv.dev/api/)

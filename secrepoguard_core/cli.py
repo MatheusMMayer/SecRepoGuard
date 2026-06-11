@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .github import RepositoryError, clone_repository
 from .history import scan_git_history
+from .osv import OsvError, query_osv
 from .report import build_report, format_text, write_json_report, write_text_report
 from .scanner import scan_project
 
@@ -29,6 +30,14 @@ def build_parser() -> argparse.ArgumentParser:
         "--scan-history",
         action="store_true",
         help="Procura segredos nas linhas adicionadas ao historico Git.",
+    )
+    parser.add_argument(
+        "--scan-vulnerabilities",
+        action="store_true",
+        help=(
+            "Consulta vulnerabilidades atuais no OSV.dev para versoes exatas. "
+            "Envia nomes e versoes de dependencias ao servico."
+        ),
     )
     parser.add_argument(
         "--history-limit",
@@ -64,8 +73,15 @@ def main(argv: list[str] | None = None) -> int:
     temporary_root: Path | None = None
 
     scan_secrets = args.scan_secrets or args.all
-    scan_dependencies = args.scan_dependencies or args.all
-    if not (scan_secrets or scan_dependencies or args.scan_history):
+    scan_dependencies = (
+        args.scan_dependencies or args.all or args.scan_vulnerabilities
+    )
+    if not (
+        scan_secrets
+        or scan_dependencies
+        or args.scan_history
+        or args.scan_vulnerabilities
+    ):
         scan_secrets = scan_dependencies = True
 
     try:
@@ -87,6 +103,10 @@ def main(argv: list[str] | None = None) -> int:
             scan_result["history"] = scan_git_history(
                 project_root, limit=args.history_limit
             )
+        if args.scan_vulnerabilities:
+            scan_result["vulnerabilities"] = query_osv(
+                scan_result["dependencies"]
+            )
         report = build_report(scan_result, source)
         print(format_text(report), end="")
 
@@ -97,7 +117,7 @@ def main(argv: list[str] | None = None) -> int:
         if temporary_root and args.keep:
             print(f"\nRepositorio mantido em: {project_root}")
         return 0
-    except (RepositoryError, OSError, ValueError) as exc:
+    except (OsvError, RepositoryError, OSError, ValueError) as exc:
         print(f"Erro: {exc}", file=sys.stderr)
         return 2
     finally:
